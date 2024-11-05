@@ -1,0 +1,47 @@
+# 1st block on tight home - thin gry line
+from hub import light_matrix
+import runloop
+from hub import port
+import motor
+import motor_pair
+from hub import motion_sensor
+motor_pair.unpair(motor_pair.PAIR_1)
+motor_pair.pair(motor_pair.PAIR_1, port.A, port.B)
+motion_sensor.reset_yaw(0)
+async def gs(ss):
+    y = motion_sensor.tilt_angles()[0]
+    while y != 0 and y>-20:
+        motor.run_for_degrees(port.A, -100,100)
+        y = motion_sensor.tilt_angles()[0]
+    while y != 0 and y<20:
+        motor.run_for_degrees(port.A, 100,100)
+        y = motion_sensor.tilt_angles()[0]
+    await motor_pair.move_for_degrees(motor_pair.PAIR_1, ss, 0)
+async def gyro_turn_right(deg):
+    motion_sensor.set_yaw_face(motion_sensor.FRONT)
+    while motion_sensor.tilt_angles()[0]>deg:
+        motor_pair.move(motor_pair.PAIR_1, -100)
+    motor_pair.stop(motor_pair.PAIR_1)
+async def gyro_turn_left(deg):
+    motion_sensor.set_yaw_face(motion_sensor.FRONT)
+    while motion_sensor.tilt_angles()[0]<deg:
+        motor_pair.move(motor_pair.PAIR_1, -100)
+    motor_pair.stop(motor_pair.PAIR_1)
+async def main():
+    # shark is me, i am shark
+    await motor_pair.move_for_degrees(motor_pair.PAIR_1, 1920, 0, velocity=2000)
+    await gs(0)
+    await gyro_turn_left(800)
+    await motor_pair.move_for_degrees(motor_pair.PAIR_1, 190, 0, velocity=2000)
+    await motor.run_for_degrees(port.A, 600, 1000)
+    await motor.run_for_degrees(motor_pair.PAIR_1, 500, 0)
+    
+    #await motor_pair.move_for_degrees(motor_pair.PAIR_1, 500, 0, velocity=2000)
+    '''
+    await gs(0)
+    #motion_sensor.reset_yaw(0)
+    await gyro_turn_left(900)
+'''
+
+
+runloop.run(main())
